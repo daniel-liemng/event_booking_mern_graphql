@@ -7,15 +7,21 @@ import Bookings from './pages/Bookings';
 import Navbar from './components/Navbar';
 import { AppContext } from './context/AppContext';
 import { useState } from 'react';
-import ProtectedRoute from './components/ProtectedRoute';
+import ProtectedRoute from './protectedRoutes/ProtectedRoute';
+import AuthRoute from './protectedRoutes/AuthRoute';
 
 const client = new ApolloClient({
   uri: 'http://localhost:5000/graphql',
   cache: new InMemoryCache(),
 });
 
+const getTokenFromLocalStorage = () => {
+  const token = localStorage.getItem('token');
+  return token ? token : null;
+};
+
 const App = () => {
-  const [token, setToken] = useState('');
+  const [token, setToken] = useState(getTokenFromLocalStorage());
   const [userId, setUserId] = useState('');
 
   return (
@@ -25,8 +31,22 @@ const App = () => {
           <Navbar />
           <main className='pt-[70px]'>
             <Routes>
-              <Route path='/' element={<Auth />} />
-              <Route path='/auth' element={<Auth />} />
+              <Route
+                path='/'
+                element={
+                  <AuthRoute>
+                    <Auth />
+                  </AuthRoute>
+                }
+              />
+              <Route
+                path='/auth'
+                element={
+                  <AuthRoute>
+                    <Auth />
+                  </AuthRoute>
+                }
+              />
               <Route path='/events' element={<Events />} />
               <Route
                 path='/bookings'

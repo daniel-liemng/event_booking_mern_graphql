@@ -17,6 +17,7 @@ const Auth = () => {
     },
     onCompleted: (data) => {
       console.log('signup', data);
+      setIsLogin(true);
     },
   });
 
@@ -30,11 +31,12 @@ const Auth = () => {
       onCompleted: (data) => {
         console.log('login', data);
         setToken(data.login.token);
+        localStorage.setItem('token', data.login.token);
       },
     }
   );
 
-  const handleSignup = (e) => {
+  const handleAuthSubmit = (e) => {
     e.preventDefault();
 
     if (!email || !password) {
@@ -54,7 +56,7 @@ const Auth = () => {
 
   return (
     <div className='h-[60vh] max-h-[80vh] w-full flex justify-center mt-10'>
-      <div className='w-[500px] bg-slate-50 p-5 rounded-md'>
+      <div className='w-[500px] bg-slate-100 p-5 rounded-md'>
         <h3 className='text-xl text-center font-semibold mb-5'>
           {isLogin ? 'Login' : 'Sign Up'}
         </h3>
@@ -62,7 +64,7 @@ const Auth = () => {
           (loginError && (
             <h4 className='text-red-500'>Error: {error?.message}</h4>
           ))}
-        <form onSubmit={handleSignup}>
+        <form onSubmit={handleAuthSubmit}>
           <div className='mb-3'>
             <label htmlFor='email'>Email</label>
             <input
@@ -71,7 +73,7 @@ const Auth = () => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder='Email'
-              className='block my-2 w-full p-2 outline-none'
+              className='block my-2 w-full p-2 outline-none focus:ring-2 focus:ring-blue-400 rounded-md'
             />
           </div>
           <div className='mb-3'>
@@ -82,13 +84,13 @@ const Auth = () => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder='Password'
-              className='block my-2 w-full p-2 outline-none'
+              className='block my-2 w-full p-2 outline-none focus:ring-2 focus:ring-blue-400 rounded-md'
             />
           </div>
           <div className='my-5'>
             <button
               type='submit'
-              className='px-4 py-2 bg-orange-400 rounded-md w-full'
+              className='px-4 py-2 bg-orange-500 rounded-md w-full font-semibold hover:text-white hover:bg-orange-600'
             >
               {isLogin ? 'Login' : 'Sign Up'}
             </button>

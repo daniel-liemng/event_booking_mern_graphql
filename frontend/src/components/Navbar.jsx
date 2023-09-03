@@ -1,9 +1,11 @@
 import { useContext } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { AppContext } from '../context/AppContext';
 
 const Navbar = () => {
+  const navigate = useNavigate();
   const { token, setToken } = useContext(AppContext);
+
   return (
     <div className='h-[70px] bg-orange-400 w-full flex items-center justify-between px-12 fixed'>
       <Link to='/' className='text-3xl font-bold'>
@@ -34,7 +36,11 @@ const Navbar = () => {
             </Link>
             <button
               type='button'
-              onClick={() => setToken('')}
+              onClick={() => {
+                setToken('');
+                localStorage.removeItem('token');
+                navigate('/');
+              }}
               className='text-lg font-semibold hover:text-gray-600'
             >
               Logout
