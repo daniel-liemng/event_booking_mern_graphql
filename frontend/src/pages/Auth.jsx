@@ -1,11 +1,14 @@
 import { useMutation } from '@apollo/client';
-import { useState } from 'react';
+import { useContext, useState } from 'react';
 import { CREATE_USER, LOGIN } from '../graphql/mutations/userMutations';
+import { AppContext } from '../context/AppContext';
 
 const Auth = () => {
-  const [isLogin, setIsLogin] = useState(false);
+  const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+
+  const { setToken, token } = useContext(AppContext);
 
   const [createUser, { loading, error }] = useMutation(CREATE_USER, {
     variables: {
@@ -26,11 +29,10 @@ const Auth = () => {
       },
       onCompleted: (data) => {
         console.log('login', data);
+        setToken(data.login.token);
       },
     }
   );
-
-  // const { data, loading: loginLoading, error: loginError } = useQuery(LOGIN);
 
   const handleSignup = (e) => {
     e.preventDefault();
@@ -47,8 +49,8 @@ const Auth = () => {
   };
 
   if (loading || loginLoading) return <h4>Loading</h4>;
-  // if (error || loginError)
-  //   return <h4 className='text-red-500'>Error: {error?.message}</h4>;
+
+  console.log('7878', token);
 
   return (
     <div className='h-[60vh] max-h-[80vh] w-full flex justify-center mt-10'>
@@ -64,6 +66,7 @@ const Auth = () => {
           <div className='mb-3'>
             <label htmlFor='email'>Email</label>
             <input
+              id='email'
               type='text'
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -72,8 +75,9 @@ const Auth = () => {
             />
           </div>
           <div className='mb-3'>
-            <label htmlFor='email'>Password</label>
+            <label htmlFor='password'>Password</label>
             <input
+              id='password'
               type='password'
               value={password}
               onChange={(e) => setPassword(e.target.value)}

@@ -5,6 +5,9 @@ import Auth from './pages/Auth';
 import Events from './pages/Events';
 import Bookings from './pages/Bookings';
 import Navbar from './components/Navbar';
+import { AppContext } from './context/AppContext';
+import { useState } from 'react';
+import ProtectedRoute from './components/ProtectedRoute';
 
 const client = new ApolloClient({
   uri: 'http://localhost:5000/graphql',
@@ -12,20 +15,32 @@ const client = new ApolloClient({
 });
 
 const App = () => {
+  const [token, setToken] = useState('');
+  const [userId, setUserId] = useState('');
+
   return (
-    <ApolloProvider client={client}>
-      <Router>
-        <Navbar />
-        <main className='pt-[70px]'>
-          <Routes>
-            <Route path='/' element={<Auth />} />
-            <Route path='/auth' element={<Auth />} />
-            <Route path='/events' element={<Events />} />
-            <Route path='/bookings' element={<Bookings />} />
-          </Routes>
-        </main>
-      </Router>
-    </ApolloProvider>
+    <AppContext.Provider value={{ token, userId, setToken, setUserId }}>
+      <ApolloProvider client={client}>
+        <Router>
+          <Navbar />
+          <main className='pt-[70px]'>
+            <Routes>
+              <Route path='/' element={<Auth />} />
+              <Route path='/auth' element={<Auth />} />
+              <Route path='/events' element={<Events />} />
+              <Route
+                path='/bookings'
+                element={
+                  <ProtectedRoute>
+                    <Bookings />
+                  </ProtectedRoute>
+                }
+              />
+            </Routes>
+          </main>
+        </Router>
+      </ApolloProvider>
+    </AppContext.Provider>
   );
 };
 
