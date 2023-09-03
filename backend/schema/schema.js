@@ -11,6 +11,7 @@ const bcrypt = require('bcrypt');
 
 const Event = require('../models/event.model');
 const User = require('../models/user.model');
+const Booking = require('../models/booking.model');
 
 const userFn = async (userId) => {
   try {
@@ -20,7 +21,7 @@ const userFn = async (userId) => {
       ...user._doc,
       id: user.id,
       password: null,
-      createdEvents: eventsFn.bind(this, user._doc.createdEvents),
+      createdEvents: eventsFn.bind(this, user.createdEvents),
     };
   } catch (err) {
     throw err;
@@ -36,11 +37,26 @@ const eventsFn = async (eventIds) => {
         ...event._doc,
         id: event.id,
         date: event.date.toISOString(),
-        creator: userFn.bind(this, event._doc.creator),
+        creator: userFn.bind(this, event.creator),
       };
     });
 
     return events;
+  } catch (err) {
+    throw err;
+  }
+};
+
+const singleEventFn = async (eventId) => {
+  try {
+    const event = await Event.findById(eventId);
+
+    return {
+      ...event._doc,
+      id: event.id,
+      date: event.date.toISOString(),
+      creator: userFn.bind(this, event.creator),
+    };
   } catch (err) {
     throw err;
   }
@@ -72,6 +88,17 @@ const UserType = new GraphQLObjectType({
   }),
 });
 
+const BookingType = new GraphQLObjectType({
+  name: 'Booking',
+  fields: () => ({
+    id: { type: GraphQLID },
+    user: { type: UserType },
+    event: { type: EventType },
+    createdAt: { type: GraphQLString },
+    updatedAt: { type: GraphQLString },
+  }),
+});
+
 // const EventInputType = new GraphQLInputObjectType({
 //   name: 'EventInput',
 //   fields: () => ({
@@ -99,6 +126,26 @@ const RootQuery = new GraphQLObjectType({
           }));
 
           return events;
+        } catch (err) {
+          throw err;
+        }
+      },
+    },
+    bookings: {
+      type: new GraphQLList(BookingType),
+      resolve: async (parent, args) => {
+        try {
+          const bookings = await Booking.find();
+          return bookings.map((booking) => {
+            return {
+              ...booking._doc,
+              id: booking.id,
+              user: userFn.bind(this, booking.user),
+              event: singleEventFn.bind(this, booking.event),
+              createdAt: booking.createdAt.toISOString(),
+              updatedAt: booking.updatedAt.toISOString(),
+            };
+          });
         } catch (err) {
           throw err;
         }
@@ -152,7 +199,7 @@ const Mutation = new GraphQLObjectType({
         description: { type: new GraphQLNonNull(GraphQLString) },
         price: { type: new GraphQLNonNull(GraphQLFloat) },
         date: { type: new GraphQLNonNull(GraphQLString) },
-        userId: { type: new GraphQLNonNull(GraphQLString) },
+        userId: { type: new GraphQLNonNull(GraphQLID) },
       },
       resolve: async (parent, args) => {
         try {
@@ -182,6 +229,55 @@ const Mutation = new GraphQLObjectType({
             date: createdEvent.date.toISOString(),
             creator: userFn.bind(this, createdEvent.creator),
           };
+        } catch (err) {
+          throw err;
+        }
+      },
+    },
+    createBooking: {
+      type: BookingType,
+      args: {
+        eventId: { type: new GraphQLNonNull(GraphQLID) },
+        userId: { type: new GraphQLNonNull(GraphQLID) },
+      },
+      resolve: async (parent, args) => {
+        const event = await Event.findById(args.eventId);
+        const user = await User.findById(args.userId);
+        const booking = new Booking({
+          user,
+          event,
+        });
+
+        const createdBooking = await booking.save();
+        return {
+          ...createdBooking._doc,
+          id: createdBooking.id,
+          user: userFn.bind(this, createdBooking.user),
+          event: singleEventFn.bind(this, createdBooking.event),
+          createdAt: createdBooking.createdAt.toISOString(),
+          updatedAt: createdBooking.updatedAt.toISOString(),
+        };
+      },
+    },
+    cancelBooking: {
+      type: EventType,
+      args: {
+        bookingId: { type: new GraphQLNonNull(GraphQLID) },
+      },
+      resolve: async (parent, args) => {
+        try {
+          const booking = await Booking.findById(args.bookingId).populate(
+            'event'
+          );
+          const event = {
+            ...booking.event._doc,
+            id: booking.event.id,
+            creator: userFn.bind(this, booking.event.creator),
+          };
+
+          await Booking.findByIdAndDelete(args.bookingId);
+
+          return event;
         } catch (err) {
           throw err;
         }
