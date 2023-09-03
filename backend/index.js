@@ -4,7 +4,7 @@ require('colors');
 const { graphqlHTTP } = require('express-graphql');
 const cors = require('cors');
 
-const schema = require('./schema/schema');
+const schema = require('./graphql/schema');
 const mongoose = require('mongoose');
 
 dotenv.config();

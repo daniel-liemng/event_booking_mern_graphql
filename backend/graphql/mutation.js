@@ -1,158 +1,16 @@
 const {
-  GraphQLObjectType,
-  GraphQLID,
-  GraphQLSchema,
-  GraphQLString,
   GraphQLFloat,
-  GraphQLList,
+  GraphQLID,
   GraphQLNonNull,
+  GraphQLObjectType,
+  GraphQLString,
 } = require('graphql');
-const bcrypt = require('bcrypt');
 
+const { UserType, EventType, BookingType } = require('./type');
 const Event = require('../models/event.model');
 const User = require('../models/user.model');
 const Booking = require('../models/booking.model');
-
-const userFn = async (userId) => {
-  try {
-    const user = await User.findById(userId);
-
-    return {
-      ...user._doc,
-      id: user.id,
-      password: null,
-      createdEvents: eventsFn.bind(this, user.createdEvents),
-    };
-  } catch (err) {
-    throw err;
-  }
-};
-
-const eventsFn = async (eventIds) => {
-  try {
-    let events = await Event.find({ _id: { $in: eventIds } });
-
-    events = events.map((event) => {
-      return {
-        ...event._doc,
-        id: event.id,
-        date: event.date.toISOString(),
-        creator: userFn.bind(this, event.creator),
-      };
-    });
-
-    return events;
-  } catch (err) {
-    throw err;
-  }
-};
-
-const singleEventFn = async (eventId) => {
-  try {
-    const event = await Event.findById(eventId);
-
-    return {
-      ...event._doc,
-      id: event.id,
-      date: event.date.toISOString(),
-      creator: userFn.bind(this, event.creator),
-    };
-  } catch (err) {
-    throw err;
-  }
-};
-
-const EventType = new GraphQLObjectType({
-  name: 'Event',
-  fields: () => ({
-    id: { type: GraphQLID },
-    title: { type: GraphQLString },
-    description: { type: GraphQLString },
-    price: { type: GraphQLFloat },
-    date: { type: GraphQLString },
-    creator: {
-      type: UserType,
-    },
-  }),
-});
-
-const UserType = new GraphQLObjectType({
-  name: 'User',
-  fields: () => ({
-    id: { type: GraphQLID },
-    email: { type: GraphQLString },
-    password: { type: GraphQLString },
-    createdEvents: {
-      type: new GraphQLList(EventType),
-    },
-  }),
-});
-
-const BookingType = new GraphQLObjectType({
-  name: 'Booking',
-  fields: () => ({
-    id: { type: GraphQLID },
-    user: { type: UserType },
-    event: { type: EventType },
-    createdAt: { type: GraphQLString },
-    updatedAt: { type: GraphQLString },
-  }),
-});
-
-// const EventInputType = new GraphQLInputObjectType({
-//   name: 'EventInput',
-//   fields: () => ({
-//     title: { type: new GraphQLNonNull(GraphQLString) },
-//     description: { type: new GraphQLNonNull(GraphQLString) },
-//     price: { type: new GraphQLNonNull(GraphQLFloat) },
-//     date: { type: new GraphQLNonNull(GraphQLString) },
-//   }),
-// });
-
-const RootQuery = new GraphQLObjectType({
-  name: 'RootQueryType',
-  fields: () => ({
-    events: {
-      type: new GraphQLList(EventType),
-      resolve: async (parent, args) => {
-        try {
-          let events = await Event.find();
-
-          events = events.map((event) => ({
-            ...event._doc,
-            id: event.id,
-            date: event.date.toISOString(),
-            creator: userFn.bind(this, event.creator),
-          }));
-
-          return events;
-        } catch (err) {
-          throw err;
-        }
-      },
-    },
-    bookings: {
-      type: new GraphQLList(BookingType),
-      resolve: async (parent, args) => {
-        try {
-          const bookings = await Booking.find();
-          return bookings.map((booking) => {
-            return {
-              ...booking._doc,
-              id: booking.id,
-              user: userFn.bind(this, booking.user),
-              event: singleEventFn.bind(this, booking.event),
-              createdAt: booking.createdAt.toISOString(),
-              updatedAt: booking.updatedAt.toISOString(),
-            };
-          });
-        } catch (err) {
-          throw err;
-        }
-      },
-    },
-  }),
-});
+const { userFn, singleEventFn } = require('./utils');
 
 const Mutation = new GraphQLObjectType({
   name: 'Mutation',
@@ -178,15 +36,13 @@ const Mutation = new GraphQLObjectType({
             password: hashedPassword,
           });
 
-          let createdUser = await newUser.save();
+          const createdUser = await newUser.save();
 
-          createdUser = {
+          return {
             ...createdUser._doc,
             id: createdUser.id,
             password: null,
           };
-
-          return createdUser;
         } catch (err) {
           throw err;
         }
@@ -286,7 +142,4 @@ const Mutation = new GraphQLObjectType({
   },
 });
 
-module.exports = new GraphQLSchema({
-  query: RootQuery,
-  mutation: Mutation,
-});
+module.exports = Mutation;
