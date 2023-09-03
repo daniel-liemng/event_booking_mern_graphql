@@ -16,37 +16,6 @@ const { userFn, singleEventFn } = require('./utils');
 const RootQuery = new GraphQLObjectType({
   name: 'RootQueryType',
   fields: () => ({
-    login: {
-      type: AuthDataType,
-      args: {
-        email: { type: new GraphQLNonNull(GraphQLString) },
-        password: { type: new GraphQLNonNull(GraphQLString) },
-      },
-      resolve: async (parent, args) => {
-        const user = await User.findOne({ email: args.email });
-
-        if (!user) {
-          throw new Error('User does not exist');
-        }
-
-        const isPasswordMatched = await bcrypt.compare(
-          args.password,
-          user.password
-        );
-
-        if (!isPasswordMatched) {
-          throw new Error('Invalid credentials');
-        }
-
-        const token = jwt.sign(
-          { userId: user.id, email: user.email },
-          process.env.JWT_SECRET,
-          { expiresIn: '1h' }
-        );
-
-        return { userId: user.id, token, tokenExpiration: 1 };
-      },
-    },
     events: {
       type: new GraphQLList(EventType),
       resolve: async (parent, args) => {
