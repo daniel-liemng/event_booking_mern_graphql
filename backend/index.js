@@ -6,12 +6,15 @@ const cors = require('cors');
 
 const schema = require('./graphql/schema');
 const mongoose = require('mongoose');
+const isAuth = require('./middleware/isAuth');
 
 dotenv.config();
 
 const app = express();
 
 app.use(cors());
+
+app.use(isAuth);
 
 app.use(
   '/graphql',

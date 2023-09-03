@@ -55,19 +55,23 @@ const Mutation = new GraphQLObjectType({
         description: { type: new GraphQLNonNull(GraphQLString) },
         price: { type: new GraphQLNonNull(GraphQLFloat) },
         date: { type: new GraphQLNonNull(GraphQLString) },
-        userId: { type: new GraphQLNonNull(GraphQLID) },
+        // userId: { type: new GraphQLNonNull(GraphQLID) },
       },
-      resolve: async (parent, args) => {
+      resolve: async (parent, args, req) => {
+        if (!req.isAuth) {
+          throw new Error('Unauthenticated !!');
+        }
+
         try {
           const newEvent = new Event({
             title: args.title,
             description: args.description,
             price: args.price,
             date: new Date(args.date),
-            creator: args.userId,
+            creator: req.userId,
           });
 
-          const user = await User.findById(args.userId);
+          const user = await User.findById(req.userId);
 
           if (!user) {
             throw new Error('User not found');
@@ -94,11 +98,14 @@ const Mutation = new GraphQLObjectType({
       type: BookingType,
       args: {
         eventId: { type: new GraphQLNonNull(GraphQLID) },
-        userId: { type: new GraphQLNonNull(GraphQLID) },
+        // userId: { type: new GraphQLNonNull(GraphQLID) },
       },
-      resolve: async (parent, args) => {
+      resolve: async (parent, args, req) => {
+        if (!req.isAuth) {
+          throw new Error('Unauthenticated !!');
+        }
         const event = await Event.findById(args.eventId);
-        const user = await User.findById(args.userId);
+        const user = await User.findById(req.userId);
         const booking = new Booking({
           user,
           event,
@@ -120,7 +127,10 @@ const Mutation = new GraphQLObjectType({
       args: {
         bookingId: { type: new GraphQLNonNull(GraphQLID) },
       },
-      resolve: async (parent, args) => {
+      resolve: async (parent, args, req) => {
+        if (!req.isAuth) {
+          throw new Error('Unauthenticated !!');
+        }
         try {
           const booking = await Booking.findById(args.bookingId).populate(
             'event'

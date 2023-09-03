@@ -66,7 +66,10 @@ const RootQuery = new GraphQLObjectType({
     },
     bookings: {
       type: new GraphQLList(BookingType),
-      resolve: async (parent, args) => {
+      resolve: async (parent, args, req) => {
+        if (!req.isAuth) {
+          throw new Error('Unauthenticated !!');
+        }
         try {
           const bookings = await Booking.find();
           return bookings.map((booking) => {
