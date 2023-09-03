@@ -4,6 +4,7 @@ const {
   GraphQLString,
   GraphQLFloat,
   GraphQLList,
+  GraphQLInt,
 } = require('graphql');
 
 const EventType = new GraphQLObjectType({
@@ -32,6 +33,15 @@ const UserType = new GraphQLObjectType({
   }),
 });
 
+const AuthDataType = new GraphQLObjectType({
+  name: 'AuthData',
+  fields: () => ({
+    userId: { type: GraphQLID },
+    token: { type: GraphQLString },
+    tokenExpiration: { type: GraphQLInt },
+  }),
+});
+
 const BookingType = new GraphQLObjectType({
   name: 'Booking',
   fields: () => ({
@@ -43,7 +53,7 @@ const BookingType = new GraphQLObjectType({
   }),
 });
 
-module.exports = { UserType, EventType, BookingType };
+module.exports = { UserType, EventType, BookingType, AuthDataType };
 
 // const EventInputType = new GraphQLInputObjectType({
 //   name: 'EventInput',
