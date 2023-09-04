@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useContext, useState } from 'react';
 import { useMutation, useQuery } from '@apollo/client';
 
 import Modal from '../components/Modal';
@@ -6,6 +6,7 @@ import { CREATE_EVENT } from '../graphql/mutations/eventMutation';
 import { GET_EVENTS } from '../graphql/queries/eventQueries';
 import EventList from '../components/EventList';
 import Spinner from '../components/Spinner';
+import { AppContext } from '../context/AppContext';
 
 const Events = () => {
   const [showModal, setShowModal] = useState(false);
@@ -14,6 +15,8 @@ const Events = () => {
   const [description, setDescription] = useState('');
   const [price, setPrice] = useState('');
   const [date, setDate] = useState('');
+
+  const { token } = useContext(AppContext);
 
   const { data, loading, error } = useQuery(GET_EVENTS);
 
@@ -38,6 +41,11 @@ const Events = () => {
   const handleAddEvent = () => {
     if (!title || !description || !price || !date) {
       return alert('Please fill all fields');
+    }
+
+    // Not authenticated
+    if (!token) {
+      return alert('Unauthenticated');
     }
 
     const event = { title, description, price: +price, date };
@@ -72,6 +80,8 @@ const Events = () => {
           setShowModal={setShowModal}
           title='Create Event'
           onConfirm={handleAddEvent}
+          mainBtnText='Create'
+          minorBtnText='Close'
         >
           <form>
             <div className='mb-3'>

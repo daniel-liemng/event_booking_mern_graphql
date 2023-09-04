@@ -1,6 +1,13 @@
 import PropTypes from 'prop-types';
 
-const Modal = ({ setShowModal, title, onConfirm, children }) => {
+const Modal = ({
+  setShowModal,
+  title,
+  onConfirm,
+  children,
+  mainBtnText,
+  minorBtnText,
+}) => {
   return (
     <>
       <div className='justify-center items-center flex overflow-x-hidden overflow-y-auto fixed inset-0 z-50 outline-none focus:outline-none'>
@@ -28,14 +35,14 @@ const Modal = ({ setShowModal, title, onConfirm, children }) => {
                 type='button'
                 onClick={() => setShowModal(false)}
               >
-                Cancel
+                {minorBtnText}
               </button>
               <button
                 className='px-4 py-2 bg-orange-500 rounded-md  font-semibold hover:text-white hover:bg-orange-600'
                 type='button'
                 onClick={onConfirm}
               >
-                Save Changes
+                {mainBtnText}
               </button>
             </div>
           </div>
@@ -51,6 +58,8 @@ Modal.propTypes = {
   title: PropTypes.string,
   onConfirm: PropTypes.func,
   children: PropTypes.element.isRequired,
+  mainBtnText: PropTypes.string,
+  minorBtnText: PropTypes.string,
 };
 
 export default Modal;

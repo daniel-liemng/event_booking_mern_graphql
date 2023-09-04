@@ -4,11 +4,29 @@ import { useContext, useState } from 'react';
 
 import { AppContext } from '../context/AppContext';
 import Modal from './Modal';
+import { useMutation } from '@apollo/client';
+import { CREATE_BOOKING } from '../graphql/mutations/bookingMutation';
 
 const EventItem = ({ event }) => {
-  const { userId } = useContext(AppContext);
+  const { userId, token } = useContext(AppContext);
 
   const [showDetailsModal, setShowDetailsModal] = useState(false);
+
+  const [createBooking] = useMutation(CREATE_BOOKING, {
+    variables: {
+      eventId: event.id,
+    },
+  });
+
+  const handleCreateBooking = () => {
+    // Not authenticated
+    if (!token) {
+      return alert('Unauthenticated');
+    }
+
+    createBooking(event.id);
+    setShowDetailsModal(false);
+  };
 
   return (
     <div className='w-[300px] p-3 border border-gray-300 rounded-md shadow-md'>
@@ -33,7 +51,9 @@ const EventItem = ({ event }) => {
         <Modal
           title='Event Details'
           setShowModal={setShowDetailsModal}
-          onConfirm={() => setShowDetailsModal(false)}
+          onConfirm={handleCreateBooking}
+          mainBtnText='Book'
+          minorBtnText='Close'
         >
           <div className='flex flex-col gap-2'>
             <h3 className='text-3xl'>{event.title}</h3>
