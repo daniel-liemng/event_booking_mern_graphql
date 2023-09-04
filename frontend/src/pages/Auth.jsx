@@ -2,21 +2,21 @@ import { useMutation } from '@apollo/client';
 import { useContext, useState } from 'react';
 import { CREATE_USER, LOGIN } from '../graphql/mutations/userMutations';
 import { AppContext } from '../context/AppContext';
+import Spinner from '../components/Spinner';
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  const { setToken, token } = useContext(AppContext);
+  const { setToken, setUserId } = useContext(AppContext);
 
   const [createUser, { loading, error }] = useMutation(CREATE_USER, {
     variables: {
       email,
       password,
     },
-    onCompleted: (data) => {
-      console.log('signup', data);
+    onCompleted: () => {
       setIsLogin(true);
     },
   });
@@ -29,9 +29,10 @@ const Auth = () => {
         password,
       },
       onCompleted: (data) => {
-        console.log('login', data);
         setToken(data.login.token);
+        setUserId(data.login.userId);
         localStorage.setItem('token', data.login.token);
+        localStorage.setItem('userId', data.login.userId);
       },
     }
   );
@@ -50,9 +51,7 @@ const Auth = () => {
     }
   };
 
-  if (loading || loginLoading) return <h4>Loading</h4>;
-
-  console.log('7878', token);
+  if (loading || loginLoading) return <Spinner />;
 
   return (
     <div className='h-[60vh] max-h-[80vh] w-full flex justify-center mt-10'>
@@ -62,7 +61,9 @@ const Auth = () => {
         </h3>
         {error ||
           (loginError && (
-            <h4 className='text-red-500'>Error: {error?.message}</h4>
+            <h4 className='text-red-500 font-semibold bg-gray-200 p-2'>
+              Error: {error?.message}
+            </h4>
           ))}
         <form onSubmit={handleAuthSubmit}>
           <div className='mb-3'>

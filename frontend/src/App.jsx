@@ -43,9 +43,14 @@ const getTokenFromLocalStorage = () => {
   return token ? token : null;
 };
 
+const getUserIdFromLocalStorage = () => {
+  const userId = localStorage.getItem('userId');
+  return userId ? userId : null;
+};
+
 const App = () => {
   const [token, setToken] = useState(getTokenFromLocalStorage());
-  const [userId, setUserId] = useState('');
+  const [userId, setUserId] = useState(getUserIdFromLocalStorage());
 
   return (
     <AppContext.Provider value={{ token, userId, setToken, setUserId }}>

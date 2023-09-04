@@ -1,5 +1,5 @@
 import { useContext } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { AppContext } from '../context/AppContext';
 
 const Navbar = () => {
@@ -13,27 +13,27 @@ const Navbar = () => {
       </Link>
       <div className='flex gap-4 items-center'>
         {!token && (
-          <Link
+          <NavLink
             to='/auth'
             className='text-lg font-semibold hover:text-gray-600'
           >
             Login
-          </Link>
+          </NavLink>
         )}
-        <Link
+        <NavLink
           to='/events'
           className='text-lg font-semibold hover:text-gray-600'
         >
           Events
-        </Link>
+        </NavLink>
         {token && (
           <div className='flex gap-4 items-center'>
-            <Link
+            <NavLink
               to='/bookings'
-              className='text-lg font-semibold hover:text-gray-600'
+              className='text-lg font-semibold hover:text-gray-600 '
             >
               Bookings
-            </Link>
+            </NavLink>
             <button
               type='button'
               onClick={() => {

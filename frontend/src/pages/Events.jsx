@@ -1,8 +1,11 @@
 import { useState } from 'react';
+import { useMutation, useQuery } from '@apollo/client';
 
 import Modal from '../components/Modal';
-import { useMutation } from '@apollo/client';
 import { CREATE_EVENT } from '../graphql/mutations/eventMutation';
+import { GET_EVENTS } from '../graphql/queries/eventQueries';
+import EventList from '../components/EventList';
+import Spinner from '../components/Spinner';
 
 const Events = () => {
   const [showModal, setShowModal] = useState(false);
@@ -12,12 +15,23 @@ const Events = () => {
   const [price, setPrice] = useState('');
   const [date, setDate] = useState('');
 
+  const { data, loading, error } = useQuery(GET_EVENTS);
+
   const [createEvent] = useMutation(CREATE_EVENT, {
     variables: {
       title,
       description,
       date,
       price: +price,
+    },
+    update(cache, { data: { createEvent } }) {
+      const { events } = cache.readQuery({ query: GET_EVENTS });
+      cache.writeQuery({
+        query: GET_EVENTS,
+        data: {
+          events: [...events, createEvent],
+        },
+      });
     },
   });
 
@@ -37,6 +51,9 @@ const Events = () => {
     setShowModal(false);
   };
 
+  if (loading) return <Spinner />;
+  if (error) return <p>Error: {error.message}</p>;
+
   return (
     <div className='p-6'>
       <button
@@ -46,6 +63,10 @@ const Events = () => {
       >
         Create Event
       </button>
+
+      <EventList events={data?.events} />
+
+      {/* Create Event Modal */}
       {showModal && (
         <Modal
           setShowModal={setShowModal}
