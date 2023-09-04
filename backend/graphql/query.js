@@ -40,8 +40,6 @@ const RootQuery = new GraphQLObjectType({
           throw new Error('Unauthenticated !!');
         }
 
-        console.log('333', typeof req.userId);
-
         try {
           const bookings = await Booking.find({
             user: req.userId,

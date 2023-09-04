@@ -1,11 +1,24 @@
 // Functions to extract the nested data in Graphql
+const DataLoader = require('dataloader');
 
 const Event = require('../models/event.model');
 const User = require('../models/user.model');
 
+// DATALOADER
+const eventLoader = new DataLoader((eventIds) => {
+  return eventsFn(eventIds);
+});
+
+const userLoader = new DataLoader((userIds) => {
+  console.log(userIds);
+  return User.find({ _id: { $in: userIds } });
+});
+
 const userFn = async (userId) => {
   try {
-    const user = await User.findById(userId);
+    // const user = await User.findById(userId);
+
+    const user = await userLoader.load(userId.toString());
 
     return {
       ...user._doc,
@@ -27,6 +40,7 @@ const eventsFn = async (eventIds) => {
         ...event._doc,
         id: event.id,
         date: event.date.toISOString(),
+        // creator: userLoader.load.bind(this, event.creator),
         creator: userFn.bind(this, event.creator),
       };
     });
@@ -37,17 +51,20 @@ const eventsFn = async (eventIds) => {
 
 const singleEventFn = async (eventId) => {
   try {
-    const event = await Event.findById(eventId);
+    // const event = await Event.findById(eventId);
+    // return {
+    //   ...event._doc,
+    //   id: event.id,
+    //   date: event.date.toISOString(),
+    //   creator: userFn.bind(this, event.creator),
+    // };
 
-    return {
-      ...event._doc,
-      id: event.id,
-      date: event.date.toISOString(),
-      creator: userFn.bind(this, event.creator),
-    };
+    // Use DataLoader
+    const event = await eventLoader.load(eventId.toString());
+    return event;
   } catch (err) {
     throw err;
   }
 };
 
-module.exports = { userFn, eventsFn, singleEventFn };
+module.exports = { userFn, eventsFn, singleEventFn, eventLoader, userLoader };
