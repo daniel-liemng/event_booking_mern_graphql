@@ -39,8 +39,13 @@ const RootQuery = new GraphQLObjectType({
         if (!req.isAuth) {
           throw new Error('Unauthenticated !!');
         }
+
+        console.log('333', typeof req.userId);
+
         try {
-          const bookings = await Booking.find();
+          const bookings = await Booking.find({
+            user: req.userId,
+          });
           return bookings.map((booking) => {
             return {
               ...booking._doc,
